@@ -40,16 +40,16 @@ class MyMsgListener : public MessageListenerConcurrently {
   virtual ~MyMsgListener() {}
 
   virtual ConsumeStatus consumeMessage(const std::vector<MQMessageExt>& msgs) {
-    g_msgCount.store(g_msgCount.load() - msgs.size());
+    //g_msgCount.store(g_msgCount.load() - msgs.size());
     for (size_t i = 0; i < msgs.size(); ++i) {
       g_tps.Increment();
-      // cout << "msg body: "<<  msgs[i].getBody() << endl;
+      cout << msgs[i].toString() << ", offsetMsgId: " << msgs[i].getOffsetMsgId() << ", msg body: "<<  msgs[i].getBody() << endl;
     }
 
-    if (g_msgCount.load() <= 0) {
+    /*if (g_msgCount.load() <= 0) {
       std::unique_lock<std::mutex> lck(g_mtx);
       g_finished.notify_one();
-    }
+    }*/
     return CONSUME_SUCCESS;
   }
 };
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
   consumer.setNamesrvAddr(info.namesrv);
   consumer.setGroupName(info.groupname);
-  consumer.setSessionCredentials("AccessKey", "SecretKey", "ALIYUN");
+  //consumer.setSessionCredentials("AccessKey", "SecretKey", "ALIYUN");
   consumer.setConsumeThreadCount(info.thread_count);
   consumer.setNamesrvDomain(info.namesrv_domain);
   consumer.setConsumeFromWhere(CONSUME_FROM_LAST_OFFSET);

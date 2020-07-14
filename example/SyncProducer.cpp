@@ -35,10 +35,10 @@ TpsReportService g_tps;
 
 void SyncProducerWorker(RocketmqSendAndConsumerArgs* info, DefaultMQProducer* producer) {
   while (!g_quit.load()) {
-    if (g_msgCount.load() <= 0) {
+    /*if (g_msgCount.load() <= 0) {
       std::unique_lock<std::mutex> lck(g_mtx);
       g_finished.notify_one();
-    }
+    }*/
     MQMessage msg(info->topic,  // topic
                   "*",          // tag
                   info->body);  // body
@@ -46,12 +46,14 @@ void SyncProducerWorker(RocketmqSendAndConsumerArgs* info, DefaultMQProducer* pr
       auto start = std::chrono::system_clock::now();
       SendResult sendResult = producer->send(msg, info->SelectUnactiveBroker);
       g_tps.Increment();
-      --g_msgCount;
+      //--g_msgCount;
       auto end = std::chrono::system_clock::now();
       auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-      if (duration.count() >= 500) {
-        std::cout << "send RT more than: " << duration.count() << " ms with msgid: " << sendResult.getMsgId() << endl;
-      }
+      //if (duration.count() >= 500) {
+        std::cout << "send RT more than: " << duration.count() << " ms, mq: " << sendResult.getMessageQueue().toString() 
+          << ", offset: " << sendResult.getQueueOffset() << ", offsetMsgId: " << sendResult.getOffsetMsgId() << ", msgid: " << sendResult.getMsgId() << endl;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+      //}
     } catch (const MQException& e) {
       std::cout << "send failed: " << std::endl;
     }
@@ -69,7 +71,7 @@ int main(int argc, char* argv[]) {
   producer.setNamesrvDomain(info.namesrv_domain);
   producer.setGroupName(info.groupname);
   producer.setInstanceName(info.groupname);
-  producer.setSessionCredentials("mq acesskey", "mq secretkey", "ALIYUN");
+  //producer.setSessionCredentials("mq acesskey", "mq secretkey", "ALIYUN");
   producer.setSendMsgTimeout(500);
   producer.setTcpTransportTryLockTimeout(1000);
   producer.setTcpTransportConnectTimeout(400);

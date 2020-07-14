@@ -193,14 +193,14 @@ MQMessageExt* MQDecoder::decode(MemoryInputStream& byteBuffer, bool readBody) {
   }
 
   // 18 msg ID
-  string offsetMsgId = createMessageId(msgExt->getStoreHost(), (int64)msgExt->getCommitLogOffset());
-  msgExt->setOffsetMsgId(offsetMsgId);
-
-  string msgId = msgExt->getProperty(MQMessage::PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX);
-  if (msgId.empty()) {
-    msgId = offsetMsgId;
-  }
+  string msgId = createMessageId(msgExt->getStoreHost(), (int64)msgExt->getCommitLogOffset());
   msgExt->setMsgId(msgId);
+
+  string offsetMsgId = msgExt->getProperty(MQMessage::PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX);
+  if (offsetMsgId.empty()) {
+    offsetMsgId = msgId;
+  }
+  msgExt->setOffsetMsgId(offsetMsgId);
 
   // LOG_INFO("get msgExt from remote server, its contents are:%s", msgExt->toString().c_str());
   return msgExt;
